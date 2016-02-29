@@ -1,7 +1,6 @@
 <div class="datepicker-modal-container">
   <div class="datepicker-modal">
-
-      <div class="datepicker-modal-head datepicker-balanced white bold">
+      <div class="datepicker-modal-head datepicker-balanced bold">
         <div class="datepicker-modal-title">{{datepickerCtrl.selectedDate | date: 'EEEE'}}</div>
       </div>
 
@@ -31,7 +30,7 @@
                   'datepicker-selected': datepickerCtrl.isSelectedMonth($index),
                   'datepicker-current': datepickerCtrl.isActualMonth($index)
                   }" ng-click="datepickerCtrl.selectMonth($index)">
-            {{month | limitTo: 3}}
+            {{ month }}
           </div>
         </div>
       </div>
@@ -75,8 +74,9 @@
       </div>
 
       <div class="datepicker-modal-buttons">
-        <button class="datepicker-cancel-js button button-clear button-small col-offset-33">CANCEL</button>
-        <button class="datepicker-ok-js button button-clear button-small datepicker-color-balanced-light">OK</button>
+        <button ng-click="onCancel()" class="datepicker-cancel-js button button-clear button-small">CANCEL</button>
+        <button ng-click="onEmpty()" class="button button-clear button-small">EMPTY</button>
+        <button ng-click="onDone()" class="datepicker-ok-js button button-clear button-small datepicker-color-balanced-light">OK</button>
       </div>
 
   </div>

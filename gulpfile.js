@@ -53,8 +53,15 @@ gulp.task('clean', function () {
   del([ 'dist/*' ]);
 });
 
+gulp.task('copy', [ 'build' ], function (done) {
+  gulp.src(['./dist/ionic-datepicker.js', './dist/templates.js'])
+    .pipe(concat('ionic-datepicker.bundle.js'))
+    .pipe(gulp.dest('../../smartcrm/smartcrm.web/app/widgets'))
+    .on('end', done);
+});
+
 gulp.task('watch', function() {
-  gulp.watch([ './src/*.js', './src/template.html', './src/*.css' ], [ 'build' ]);
+  gulp.watch([ './src/*.js', './src/template.html', './src/*.css' ], [ 'copy' ]);
 });
 
 gulp.task('default', [ 'clean', 'lint', 'build' ]);

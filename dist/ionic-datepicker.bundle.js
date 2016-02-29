@@ -18,15 +18,11 @@
     // Delegates
     this.getDaysOfWeek = DatepickerService.getDaysOfWeek;
     this.getMonths = DatepickerService.getMonths;
+    this.getYears = DatepickerService.getYears;
 
-    this.getYears = function () {
-      return DatepickerService.getYears($scope.min, $scope.max);
-    }
+    this.initialize = function() {
 
-    this.initialize = function(ngModel) {
-      this.ngModel = ngModel;
-
-      this.selectedDate = angular.copy(this.ngModel.$viewValue || new Date());
+      this.selectedDate = angular.copy($scope.date || new Date());
       this.tempDate = angular.copy(this.selectedDate);
 
       this.createDateList(this.selectedDate);
@@ -128,25 +124,12 @@
 
     this.onCancel = function(e) {
       this.selectedDate = angular.copy($scope.date || new Date());
-      if ($scope.callback) {
-        $scope.callback(undefined);
-      }
+      $scope.callback(undefined);
     };
 
     this.onDone = function(e) {
       $scope.date = angular.copy(this.selectedDate);
-      this.ngModel.$setViewValue($scope.date);
-      if ($scope.callback) {
-        $scope.callback($scope.date);
-      }
-    };
-
-    this.onEmpty = function (e) {
-      $scope.date = null;
-      this.ngModel.$setViewValue($scope.date);
-      if ($scope.callback) {
-        $scope.callback(null);
-      }
+      $scope.callback($scope.date);
     };
 
   }]);
@@ -166,14 +149,12 @@
       controller: 'DatepickerCtrl',
       controllerAs: 'datepickerCtrl',
       scope: {
+        date: '=',
         min: '=',
         max: '=',
-        ngModel: '='
+        callback: '='
       },
-      require: ['ionicDatepicker', 'ngModel'],
-      link: function (scope, element, attrs, ctrls) {
-        var controller = ctrls[0];
-        var ngModel = ctrls[1];
+      link: function (scope, element, attrs, controller) {
 
         var scroll = function(el) {
           var $$container = $(el)
@@ -186,13 +167,13 @@
         scope.show = function(modal) {
 
           scope.modal = modal;
-          controller.initialize(ngModel);
+          controller.initialize();
           scope.modal.show();
 
-          // $('.datepicker-month-js').on('click', function() { scroll('.datepicker-month-content-js'); });
-          // $('.datepicker-year-js').on('click', function() { scroll('.datepicker-year-content-js'); });
-          // $('.datepicker-cancel-js').on('click', scope.onCancel);
-          // $('.datepicker-ok-js').on('click', scope.onDone);
+          $('.datepicker-month-js').on('click', function() { scroll('.datepicker-month-content-js'); });
+          $('.datepicker-year-js').on('click', function() { scroll('.datepicker-year-content-js'); });
+          $('.datepicker-cancel-js').on('click', scope.onCancel);
+          $('.datepicker-ok-js').on('click', scope.onDone);
         };
 
         scope.onCancel = function() {
@@ -202,11 +183,6 @@
 
         scope.onDone = function() {
           controller.onDone();
-          scope.modal.remove();
-        };
-
-        scope.onEmpty = function() {
-          controller.onEmpty();
           scope.modal.remove();
         };
 
@@ -231,13 +207,6 @@
   .service('DatepickerService', function () {
 
     var locale = window.navigator.userLanguage || window.navigator.language;
-    locale = 'de';
-
-    var self = this;
-
-    this.toLocaleString = function (date, format) {
-      return moment(date).format(format);
-    };
 
     this.getDaysOfWeek = function() {
       var today     = new Date()
@@ -246,8 +215,7 @@
         , lastDay   = firstDay + 6;
       for (var i = firstDay; i <= lastDay; i++) {
         today.setDate(i);
-        days.push(self.toLocaleString(today, 'dd'));
-        // days.push(today.toLocaleString(locale, { weekday: 'long' }));
+        days.push(today.toLocaleString(locale, { weekday: 'long' }));
       }
       return days;
     };
@@ -258,20 +226,14 @@
       for (var i = 0; i < 12; i++) {
         today.setDate(1);
         today.setMonth(i);
-        months.push(self.toLocaleString(today, 'MMMM'));
-        // months.push(today.toLocaleString(locale, { month: 'long' }));
+        months.push(today.toLocaleString(locale, { month: 'long' }));
       }
       return months;
     };
 
-    this.getYears = function(min, max) {
-      min = min ? min.getFullYear() : 1900;
-      max = max ? max.getFullYear() : 2100;
-
+    this.getYears = function() {
       var years = [];
-      for (var i = max; i >= min ; i--) {
-        years.push(i);
-      }
+      for (var i = 1900; i < 2101; i++) years.push(i);
       return years;
     };
 
@@ -292,4 +254,16 @@
       return dateList;
     };
   });
+})();
+
+(function(module) {
+try {
+  module = angular.module('ionic-datepicker.templates');
+} catch (e) {
+  module = angular.module('ionic-datepicker.templates', []);
+}
+module.run(['$templateCache', function($templateCache) {
+  $templateCache.put('template.html',
+    '<div class=datepicker-modal-container><div class=datepicker-modal><div class="datepicker-modal-head datepicker-balanced white bold"><div class=datepicker-modal-title>{{datepickerCtrl.selectedDate | date: \'EEEE\'}}</div></div><div class="center datepicker-balanced-light"><div class=row><div class="col datepicker-month-js datepicker-month" ng-click="datepickerCtrl.changeType(\'month\')">{{datepickerCtrl.selectedDate | date: \'MMM\' | uppercase}}</div></div><div class=row><div class="col datepicker-day-of-month" ng-click="datepickerCtrl.changeType(\'date\')">{{datepickerCtrl.selectedDate | date: \'d\'}}</div></div><div class=row><div class="col datepicker-year-js datepicker-year" ng-click="datepickerCtrl.changeType(\'year\')">{{datepickerCtrl.selectedDate | date: \'yyyy\'}}</div></div></div><div class="datepicker-month-content-js datepicker-content" ng-show="datepickerCtrl.showType(\'month\')"><div class="row center" ng-repeat="month in datepickerCtrl.getMonths() track by $index"><div class=col ng-class="{ \'datepicker-selected\': datepickerCtrl.isSelectedMonth($index), \'datepicker-current\': datepickerCtrl.isActualMonth($index) }" ng-click=datepickerCtrl.selectMonth($index)>{{month | limitTo: 3}}</div></div></div><div class="datepicker-content visible-overflow" ng-show="datepickerCtrl.showType(\'date\')"><div class="row col center">{{datepickerCtrl.tempDate | date: \'MMMM yyyy\'}}</div><div class="row center"><div class="col bold" ng-repeat="dayOfWeek in datepickerCtrl.getDaysOfWeek() track by $index">{{dayOfWeek | limitTo: 1 | uppercase}}</div></div><div class="row center" ng-repeat="row in datepickerCtrl.rows track by $index"><div class="col no-padding" ng-repeat="col in datepickerCtrl.cols track by $index" ng-class="{ \'datepicker-date-col\': datepickerCtrl.isDefined(datepickerCtrl.getDate($parent.$index, $index)), \'datepicker-selected\': datepickerCtrl.isSelectedDate(datepickerCtrl.getDate($parent.$index, $index)), \'datepicker-current\' : datepickerCtrl.isActualDate(datepickerCtrl.getDate($parent.$index, $index)), \'datepicker-disabled\': datepickerCtrl.isDisabled(datepickerCtrl.getDate($parent.$index, $index)) }"><div class=datepicker-date-cell ng-click="datepickerCtrl.selectDate(datepickerCtrl.getDate($parent.$index, $index))">{{ datepickerCtrl.getDate($parent.$index, $index) | date: \'d\' }}</div></div></div></div><div class="datepicker-year-content-js datepicker-content" ng-show="datepickerCtrl.showType(\'year\')"><div class="row center" ng-repeat="year in datepickerCtrl.getYears() track by $index"><div class=col ng-class="{ \'datepicker-selected\': datepickerCtrl.isSelectedYear(year), \'datepicker-current\': datepickerCtrl.isActualYear(year) }" ng-click=datepickerCtrl.selectYear(year)>{{year}}</div></div></div><div class=datepicker-modal-buttons><button class="datepicker-cancel-js button button-clear button-small col-offset-33">CANCEL</button> <button class="datepicker-ok-js button button-clear button-small datepicker-color-balanced-light">OK</button></div></div></div>');
+}]);
 })();

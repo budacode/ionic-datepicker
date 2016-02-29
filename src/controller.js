@@ -12,11 +12,15 @@
     // Delegates
     this.getDaysOfWeek = DatepickerService.getDaysOfWeek;
     this.getMonths = DatepickerService.getMonths;
-    this.getYears = DatepickerService.getYears;
 
-    this.initialize = function() {
+    this.getYears = function () {
+      return DatepickerService.getYears($scope.min, $scope.max);
+    }
 
-      this.selectedDate = angular.copy($scope.date || new Date());
+    this.initialize = function(ngModel) {
+      this.ngModel = ngModel;
+
+      this.selectedDate = angular.copy(this.ngModel.$viewValue || new Date());
       this.tempDate = angular.copy(this.selectedDate);
 
       this.createDateList(this.selectedDate);
@@ -118,12 +122,25 @@
 
     this.onCancel = function(e) {
       this.selectedDate = angular.copy($scope.date || new Date());
-      $scope.callback(undefined);
+      if ($scope.callback) {
+        $scope.callback(undefined);
+      }
     };
 
     this.onDone = function(e) {
       $scope.date = angular.copy(this.selectedDate);
-      $scope.callback($scope.date);
+      this.ngModel.$setViewValue($scope.date);
+      if ($scope.callback) {
+        $scope.callback($scope.date);
+      }
+    };
+
+    this.onEmpty = function (e) {
+      $scope.date = null;
+      this.ngModel.$setViewValue($scope.date);
+      if ($scope.callback) {
+        $scope.callback(null);
+      }
     };
 
   }]);

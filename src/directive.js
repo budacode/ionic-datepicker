@@ -12,12 +12,14 @@
       controller: 'DatepickerCtrl',
       controllerAs: 'datepickerCtrl',
       scope: {
-        date: '=',
         min: '=',
         max: '=',
-        callback: '='
+        ngModel: '='
       },
-      link: function (scope, element, attrs, controller) {
+      require: ['ionicDatepicker', 'ngModel'],
+      link: function (scope, element, attrs, ctrls) {
+        var controller = ctrls[0];
+        var ngModel = ctrls[1];
 
         var scroll = function(el) {
           var $$container = $(el)
@@ -30,13 +32,13 @@
         scope.show = function(modal) {
 
           scope.modal = modal;
-          controller.initialize();
+          controller.initialize(ngModel);
           scope.modal.show();
 
-          $('.datepicker-month-js').on('click', function() { scroll('.datepicker-month-content-js'); });
-          $('.datepicker-year-js').on('click', function() { scroll('.datepicker-year-content-js'); });
-          $('.datepicker-cancel-js').on('click', scope.onCancel);
-          $('.datepicker-ok-js').on('click', scope.onDone);
+          // $('.datepicker-month-js').on('click', function() { scroll('.datepicker-month-content-js'); });
+          // $('.datepicker-year-js').on('click', function() { scroll('.datepicker-year-content-js'); });
+          // $('.datepicker-cancel-js').on('click', scope.onCancel);
+          // $('.datepicker-ok-js').on('click', scope.onDone);
         };
 
         scope.onCancel = function() {
@@ -46,6 +48,11 @@
 
         scope.onDone = function() {
           controller.onDone();
+          scope.modal.remove();
+        };
+
+        scope.onEmpty = function() {
+          controller.onEmpty();
           scope.modal.remove();
         };
 
